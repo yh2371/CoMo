@@ -160,7 +160,20 @@ python GPT_eval_multi.py  \
 --resume-trans ./pretrained/Trans/net_best_fid.pth
 ```
 
-### Acknowledgement
+## BibTeX
+
+```bibtex
+@misc{huang2024como,
+      title={CoMo: Controllable Motion Generation through Language Guided Pose Code Editing}, 
+      author={Yiming Huang and Weilin Wan and Yue Yang and Chris Callison-Burch and Mark Yatskar and Lingjie Liu},
+      year={2024},
+      eprint={2403.13900},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
+
+## Acknowledgement
 
 We would like to thank the following contributors whose work our code is based on:
 
