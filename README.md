@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">CoMo: CoMo: Controllable Motion Generation<br> through Language Guided Pose Code Editing</h1>
+  <h1 align="center">CoMo: Controllable Motion Generation<br> through Language Guided Pose Code Editing</h1>
   <h3 align="center">ECCV 2024</h3>
   <h3 align="center"><a href="https://arxiv.org/abs/2403.13900">Paper</a> | <a href="https://yh2371.github.io/como/">Project Page</a> </h3>
   <div align="center"></div>
@@ -16,7 +16,7 @@ bash dataset/prepare/download_glove.sh
 bash dataset/prepare/download_extractor.sh
 ```
 
-## Datasets
+## Data
 
 ### Motion-Language Data
 
@@ -58,18 +58,6 @@ The pretrained model checkpoints will be stored in the `./pretrained` folder:
 
 ```bash
 bash dataset/prepare/download_model.sh
-```
-
-
-### 2.6. Render SMPL mesh (optional)
-
-If you want to render the generated motion, you need to install:
-
-```bash
-sudo sh dataset/prepare/download_smpl.sh
-conda install -c menpo osmesa
-conda install h5py
-conda install -c conda-forge shapely pyrender trimesh mapbox_earcut
 ```
 
 ## Training
