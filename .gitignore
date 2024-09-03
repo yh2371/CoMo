@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+**/*.pyc
+
+
+# Cache
+.vscode
+.idea
+*.pkl
+*.pkl.json
+*.log.json
+output/
+wandb/
+logs/
+checkpoints/
+posescript/
+exclude/
+dataset/HumanML3D
+dataset/KIT-ML
+
+# Pytorch
+*.pth
+*.pt
+
+# Loaded/Saved data files
+*.sh
+*.npz
+*.npy
+*.pickle
+
+# MacOS
+*DS_Store*
+# git
+*.orig

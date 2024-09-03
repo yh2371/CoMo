@@ -16,6 +16,8 @@ bash dataset/prepare/download_glove.sh
 bash dataset/prepare/download_extractor.sh
 ```
 
+The code was tested on Ubuntu 22.04.4 LTS.
+
 ## Data
 
 ### Motion-Language Data
@@ -26,6 +28,7 @@ The resulting file directory should look like this:
 ```
 ./dataset/[dataset_name]/
 ├── new_joint_vecs/
+├── new_joints/
 ├── texts/
 ├── Mean.npy 
 ├── Std.npy 
@@ -38,19 +41,27 @@ The resulting file directory should look like this:
 
 ### Fine-grained Descriptions
 
-We prompt GPT-4 to obtain fine-grained keywords that describe the motion of different body parts. The prompt template used can be found in `./prompts`. The collected keywords can be downloaded using the following commands:
+We prompt GPT-4 to obtain fine-grained keywords that describe the motion of different body parts. The prompt template used can be found in `./prompts`. The collected keywords and corresponding CLIP embeddings can be downloaded using the following commands:
 
 ```bash
 bash dataset/prepare/download_keywords.sh
 ```
 
+The keywords and keyword embeddings will be stored in the `./keywords` and `./keyword_embedding` sub-folders, respectively, for each dataset `./dataset/[dataset_name]/`. The training/evaluation code directly loads keyword embeddings. The original text is stored in dictionaries and can be read as follows: 
+
+```bash
+text = np.load("./dataset/[dataset_name]/keywords/[file_id].npy", allow_pickle = False).item()
+```
+
 ### Pose Codes
 
-We adapt [[PoseScript]](https://github.com/EricGuo5513/HumanML3D) to parse poses into pose codes, the parsed codes will be stored in the `./codes` sub-folder for each dataset:
+We adapt [[PoseScript]](https://github.com/EricGuo5513/HumanML3D) to parse poses into pose codes, the parsed codes will be stored in the `./codes` sub-folder for each dataset `./dataset/[dataset_name]/`:
 
 ```bash
 bash dataset/prepare/parse_motion.sh
 ```
+
+Although we chose to obtain pose codes through heuristic skeleton parsing throughout our framework, it is also possible to train an encoder module using the parsed pose codes as supervision to encode motion sequences into pose code sequences. We include the checkpoint and training details for this encoder in the sections below.
 
 ### Pre-trained Models 
 
@@ -61,7 +72,6 @@ bash dataset/prepare/download_model.sh
 ```
 
 ## Training
-
 
 ### Motion Decoder 
 
@@ -81,13 +91,35 @@ python train_dec.py \
 --loss-vel 0.5 \
 --recons-loss l1_smooth \
 --exp-name Dec \
+--output-emb-width 392
+```
+
+### [Optional] Motion Encoder
+
+```bash
+python train_enc.py \
+--batch-size 256 \
+--lr 1e-4 \
+--total-iter 300000 \
+--lr-scheduler 200000 \
+--nb-code 392 \
+--down-t 2 \
+--depth 3 \
+--dilation-growth-rate 3 \
+--out-dir output \
+--dataname t2m \
+--vq-act relu \
+--loss-vel 0.5 \
+--recons-loss l1_smooth \
+--exp-name Enc\
 --output-emb-width 392 \
+--resume-pth ./pretrained/Dec/net_best_fid.pth
 ```
 
 ### Motion Generator
 
 ```bash
-python train_enc.py \
+python train_t2m.py \
 --batch-size 256 \
 --lr 1e-4 \
 --total-iter 300000 \
@@ -111,7 +143,7 @@ python train_enc.py \
 ### Motion Decoder
 
 ```bash
-python3 VQ_eval.py \
+python3 eval_dec.py \
 --batch-size 256 \
 --lr 2e-4 \
 --total-iter 300000 \
@@ -127,13 +159,13 @@ python3 VQ_eval.py \
 --recons-loss l1_smooth \
 --exp-name TEST_Dec \
 --resume-pth ./pretrained/Dec/net_best_fid.pth \
---output-emb-width 392 \
+--output-emb-width 392
 ```
 
 ### Motion Generator
 
 ```bash
-python GPT_eval_multi.py  \
+python eval_t2m.py  \
 --exp-name TEST_Trans \
 --batch-size 256 \
 --num-layers 9 \
@@ -175,6 +207,6 @@ python GPT_eval_multi.py  \
 
 ## Acknowledgement
 
-We would like to thank the following contributors whose work our code is based on:
+We would like to thank the following contributors whose amazing work our code is based on:
 
 [text-to-motion](https://github.com/EricGuo5513/text-to-motion), [T2M-GPT](https://github.com/Mael-zys/T2M-GPT), [PoseScript](https://github.com/naver/posescript)
