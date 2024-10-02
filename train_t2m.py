@@ -24,7 +24,6 @@ from options.get_eval_option import get_opt
 from models.evaluator_wrapper import EvaluatorModelWrapper
 import warnings
 warnings.filterwarnings('ignore')
-CUDA_LAUNCH_BLOCKING=1
 
 ##### ---- WANDB ---- #####
 import wandb
@@ -35,8 +34,6 @@ torch.manual_seed(args.seed)
 
 args.out_dir = os.path.join(args.out_dir, f'{args.exp_name}')
 args.vq_dir= os.path.join("./dataset/KIT-ML" if args.dataname == 'kit' else "./dataset/HumanML3D", f'{args.vq_name}')
-# os.makedirs(args.out_dir, exist_ok = True)
-# os.makedirs(args.vq_dir, exist_ok = True)
 
 ##### ---- Logger ---- #####
 logger = utils_model.get_logger(args.out_dir)
@@ -44,7 +41,7 @@ writer = SummaryWriter(args.out_dir)
 logger.info(json.dumps(vars(args), indent=4, sort_keys=True))
 
 ##### ---- WANDB ---- #####
-run = wandb.init(project="t2m_subset", config = vars(args))
+run = wandb.init(project="como", config = vars(args))
 
 ##### ---- Dataloader ---- #####
 
@@ -73,7 +70,7 @@ net = motion_dec.MotionDec(args, ## use args to define different parameters in d
                        args.depth,
                        args.dilation_growth_rate)
 
-trans_encoder = trans.MotionTrans(num_vq=args.nb_code, 
+trans_net = trans.MotionTrans(num_vq=args.nb_code, 
                                 embed_dim=args.embed_dim_gpt, 
                                 clip_dim=args.clip_dim, 
                                 block_size=args.block_size, 
@@ -81,8 +78,6 @@ trans_encoder = trans.MotionTrans(num_vq=args.nb_code,
                                 n_head=args.n_head_gpt, 
                                 drop_out_rate=args.drop_out_rate, 
                                 fc_rate=args.ff_rate)
-# trans_encoder = torch.nn.DataParallel(trans_encoder)
-# print("Parallel")
 
 print ('loading checkpoint from {}'.format(args.resume_pth))
 ckpt = torch.load(args.resume_pth, map_location='cpu')
@@ -93,19 +88,15 @@ net.cuda()
 if args.resume_trans is not None:
     print ('loading transformer checkpoint from {}'.format(args.resume_trans))
     ckpt = torch.load(args.resume_trans, map_location='cpu')
-    trans_encoder.load_state_dict(ckpt['trans'], strict=True)
-trans_encoder.train()
-#trans_encoder.eval()
-trans_encoder.cuda()
+    trans_net.load_state_dict(ckpt['trans'], strict=True)
+trans_net.train()
+trans_net.cuda()
 
 ##### ---- Optimizer & Scheduler ---- #####
-#optimizer = optim.AdamW(net.parameters(), lr=args.lr, betas=(0.9, 0.99), weight_decay=args.weight_decay)
-optimizer = utils_model.initial_optim(args.decay_option, args.lr, args.weight_decay, trans_encoder, args.optimizer)
+optimizer = utils_model.initial_optim(args.decay_option, args.lr, args.weight_decay, trans_net, args.optimizer)
 scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.lr_scheduler, gamma=args.gamma)
 
 ##### ---- Optimization goals ---- #####
-loss_ce = torch.nn.CrossEntropyLoss()
-#loss_ce = torch.nn.MSELoss()
 loss_bce = torch.nn.BCEWithLogitsLoss()
 Loss = losses.ReConsLoss('l1_smooth', 22)
 
@@ -124,8 +115,8 @@ best_top1=0
 best_top2=0
 best_top3=0
 best_matching=100
-#best_fid, best_iter, best_div, best_top1, best_top2, best_top3, best_matching, writer, logger, val_acc, val_loss = eval_trans.evaluation_transformer(args.out_dir, val_loader, net, trans_encoder, logger, writer, 0, best_fid=1000, best_iter=0, best_div=100, best_top1=0, best_top2=0, best_top3=0, best_matching=100, clip_model=clip_model, eval_wrapper=eval_wrapper,nb_code=args.nb_code)
-
+best_fid, best_iter, best_div, best_top1, best_top2, best_top3, best_matching, writer, logger, val_acc, val_loss = eval_trans.evaluation_transformer(args.out_dir, val_loader, net, trans_net, logger, writer, nb_iter, best_fid, best_iter, best_div, best_top1, best_top2, best_top3, best_matching, clip_model=clip_model, eval_wrapper=eval_wrapper)
+        
 
 # Define the exponential decay schedule parameters
 decay_factor = 0.99  # Exponential decay factor (adjust as needed)
@@ -175,8 +166,7 @@ while nb_iter <= args.total_iter:
                 a_indices[:,:,start:end+1] = torch.nn.functional.sigmoid(a_indices[:,:,start:end+1]) > 0.5
     else:
         a_indices = input_index
-
-    cls_pred = trans_encoder(a_indices.float(), feat_clip_text) 
+    cls_pred = trans_net(a_indices.float(), feat_clip_text) 
     cls_pred = cls_pred.contiguous()
     offset = 11 #number of keywords
     loss_cls = 0.0
@@ -192,7 +182,6 @@ while nb_iter <= args.total_iter:
                     end, start = vq_to_range[cat]
                     right_num += (torch.argmax(pred[:,start:end+1], dim = -1) == torch.argmax(tgt[:,start:end+1], dim = -1)).sum().item()
 
-            cat_num = cat_num
             nb_sample_train += ((m_tokens_len[i]+1)*cat_num).item()
 
     ## global loss
@@ -202,13 +191,10 @@ while nb_iter <= args.total_iter:
     scheduler.step()
 
     avg_loss_cls = avg_loss_cls + loss_cls.item()
-    #avg_acc = avg_acc + acc
-    #nb_sample_train = nb_sample_train + (m_tokens_len + 1).sum().item()*263
 
     nb_iter += 1
     if nb_iter % args.print_iter ==  0 :
         avg_loss_cls = avg_loss_cls / args.print_iter
-        #avg_acc = avg_acc / args.print_iter
         avg_acc = right_num * 100 / nb_sample_train
         writer.add_scalar('./Loss/train', avg_loss_cls, nb_iter)
         writer.add_scalar('./ACC/train', avg_acc, nb_iter)
@@ -221,9 +207,8 @@ while nb_iter <= args.total_iter:
         nb_sample_train = 0
         current_sampling_prob = max(min_sampling_prob, current_sampling_prob * decay_factor)
 
-    if nb_iter == 200 or nb_iter % args.eval_iter ==  0:
-        best_fid, best_iter, best_div, best_top1, best_top2, best_top3, best_matching, writer, logger, val_acc, val_loss = eval_trans.evaluation_transformer(args.out_dir, val_loader, net, trans_encoder, logger, writer, nb_iter, best_fid, best_iter, best_div, best_top1, best_top2, best_top3, best_matching, clip_model=clip_model, eval_wrapper=eval_wrapper, nb_code=args.nb_code)
-        #wandb.log({"Val Loss": val_loss, "Val Accuracy":val_acc})
+    if nb_iter % args.eval_iter ==  0:
+        best_fid, best_iter, best_div, best_top1, best_top2, best_top3, best_matching, writer, logger, val_acc, val_loss = eval_trans.evaluation_transformer(args.out_dir, val_loader, net, trans_net, logger, writer, nb_iter, best_fid, best_iter, best_div, best_top1, best_top2, best_top3, best_matching, clip_model=clip_model, eval_wrapper=eval_wrapper)
         
     if nb_iter == args.total_iter: 
         msg_final = f"Train. Iter {best_iter} : FID. {best_fid:.5f}, Diversity. {best_div:.4f}, TOP1. {best_top1:.4f}, TOP2. {best_top2:.4f}, TOP3. {best_top3:.4f}"

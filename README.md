@@ -41,16 +41,16 @@ The resulting file directory should look like this:
 
 ### Fine-grained Descriptions
 
-We prompt GPT-4 to obtain fine-grained keywords that describe the motion of different body parts. The prompt template used can be found in `./prompts`. The collected keywords and corresponding CLIP embeddings can be downloaded using the following commands:
+We prompt GPT-4 to obtain fine-grained keywords that describe the motion of different body parts. The collected keywords and corresponding CLIP embeddings can be downloaded using the following commands:
 
 ```bash
 bash dataset/prepare/download_keywords.sh
 ```
 
-The keywords and keyword embeddings will be stored in the `./keywords` and `./keyword_embedding` sub-folders, respectively, for each dataset `./dataset/[dataset_name]/`. The training/evaluation code directly loads keyword embeddings. The original text is stored in dictionaries and can be read as follows: 
+The keywords and keyword embeddings will be stored in the `./keywords` and `./keyword_embeddings` sub-folders, respectively, for each dataset `./dataset/[dataset_name]/`. The training/evaluation code directly loads keyword embeddings. The original text is stored in dictionaries and can be read as follows: 
 
 ```bash
-text = np.load("./dataset/[dataset_name]/keywords/[file_id].npy", allow_pickle = False).item()
+text = np.load("./dataset/[dataset_name]/keywords/[file_id].npy", allow_pickle = True).item()
 ```
 
 ### Pose Codes
@@ -61,7 +61,7 @@ We adapt [[PoseScript]](https://github.com/EricGuo5513/HumanML3D) to parse poses
 bash dataset/prepare/parse_motion.sh
 ```
 
-Although we chose to obtain pose codes through heuristic skeleton parsing throughout our framework, it is also possible to train an encoder module using the parsed pose codes as supervision to encode motion sequences into pose code sequences. We include the checkpoint and training details for this encoder in the sections below.
+Although we chose to obtain pose codes through heuristic skeleton parsing throughout our framework, it is also possible to train an encoder module using the parsed pose codes as latent supervision to encode motion sequences into pose code sequences. We include the checkpoint and training details for this encoder in the sections below.
 
 ### Pre-trained Models 
 
@@ -111,7 +111,7 @@ python train_enc.py \
 --vq-act relu \
 --loss-vel 0.5 \
 --recons-loss l1_smooth \
---exp-name Enc\
+--exp-name Enc \
 --output-emb-width 392 \
 --resume-pth ./pretrained/Dec/net_best_fid.pth
 ```
@@ -120,22 +120,25 @@ python train_enc.py \
 
 ```bash
 python train_t2m.py \
---batch-size 256 \
---lr 1e-4 \
---total-iter 300000 \
---lr-scheduler 200000 \
+--exp-name Trans \
+--batch-size 64 \
+--num-layers 9 \ 
 --nb-code 392 \
+--n-head-gpt 16 \ 
+--block-size 62 \
+--ff-rate 4 \ 
+--out-dir output \
+--total-iter 300000 \
+--lr-scheduler 150000 \
+--lr 0.0001 \
+--dataname t2m \
 --down-t 2 \
 --depth 3 \
+--eval-iter 10000 \
 --dilation-growth-rate 3 \
---out-dir output \
---dataname t2m \
---vq-act relu \
---loss-vel 0.5 \
---recons-loss l1_smooth \
---exp-name Trans \
 --output-emb-width 392 \
---resume-pth ./pretrained/Dec/net_best_fid.pth
+--resume-pth ./pretrained/Dec/net_best_fid.pth \
+--resume-trans ./output/GPT/net_best_fid.pth 
 ```
 
 ## Evaluation
@@ -181,7 +184,7 @@ python eval_t2m.py  \
 --total-iter 300000 \
 --lr-scheduler 150000 \
 --lr 0.0001 \
---dataname t2m \
+--dtaname t2m \
 --down-t 2 \
 --depth 3 \
 --eval-iter 10000 \
@@ -193,7 +196,7 @@ python eval_t2m.py  \
 ```
 
 ## BibTeX
-
+If you find our work helpful or use our code, please consider citing:
 ```bibtex
 @misc{huang2024como,
       title={CoMo: Controllable Motion Generation through Language Guided Pose Code Editing}, 

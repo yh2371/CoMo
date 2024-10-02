@@ -36,8 +36,8 @@ def get_args_parser():
     parser.add_argument('--vq-act', type=str, default='relu', choices = ['relu', 'silu', 'gelu'], help='dataset directory')
 
     ## transformer arch
-    parser.add_argument("--block-size", type=int, default=25, help="seq len")
-    parser.add_argument("--embed-dim-gpt", type=int, default=512, help="embedding dimension")
+    parser.add_argument("--block-size", type=int, default=62, help="seq len")
+    parser.add_argument("--embed-dim-gpt", type=int, default=1024, help="embedding dimension")
     parser.add_argument("--clip-dim", type=int, default=512, help="latent dimension in the clip feature")
     parser.add_argument("--num-layers", type=int, default=2, help="nb of transformer layers")
     parser.add_argument("--n-head-gpt", type=int, default=8, help="nb of heads")

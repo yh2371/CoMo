@@ -4,11 +4,9 @@ import clip
 import numpy as np
 import torch
 from scipy import linalg
-from tqdm import tqdm
 
 import visualization.plot_3d_global as plot_3d
 from utils.motion_process import recover_from_ric
-CUDA_LAUNCH_BLOCKING=1
 
 def tensorboard_add_video_xyz(writer, xyz, nb_iter, tag, nb_vis=4, title_batch=None, outname=None):
     xyz = xyz[:1]
@@ -37,7 +35,7 @@ def evaluation_enc(out_dir, val_loader, dec, enc, logger, writer, nb_iter, best_
     nb_sample = 0
     matching_score_real = 0
     matching_score_pred = 0
-    for batch in tqdm(val_loader):
+    for batch in val_loader:
         word_embeddings, pos_one_hots, caption, sent_len, motion, m_length, token, name, code_indices, _ = batch
         motion = motion.cuda()
         et, em = eval_wrapper.get_co_embeddings(word_embeddings, pos_one_hots, sent_len, motion, m_length)
@@ -174,7 +172,7 @@ def evaluation_dec(out_dir, val_loader, net, logger, writer, nb_iter, best_fid, 
     matching_score_real = 0
     matching_score_pred = 0
 
-    for batch in tqdm(val_loader):
+    for batch in val_loader:
         word_embeddings, pos_one_hots, caption, sent_len, motion, m_length, _, _, code_indices, _ = batch
         motion = motion.cuda()
         et, em = eval_wrapper.get_co_embeddings(word_embeddings, pos_one_hots, sent_len, motion, m_length)
@@ -316,7 +314,7 @@ def evaluation_transformer(out_dir, val_loader, net, trans, logger, writer, nb_i
     nb_sample = 0
 
     for i in range(1):
-        for batch in tqdm(val_loader):
+        for batch in val_loader:
             word_embeddings, pos_one_hots, clip_text, sent_len, pose, m_length, token, name, indices, keyword_embeddings = batch
 
             bs, seq = pose.shape[:2]
@@ -466,8 +464,7 @@ def evaluation_transformer_test(out_dir, val_loader, net, trans, logger, writer,
 
     nb_sample = 0
 
-    from tqdm import tqdm
-    for batch in tqdm(val_loader):
+    for batch in val_loader:
 
         word_embeddings, pos_one_hots, clip_text, sent_len, pose, m_length, token, name, indices, keyword_embeddings = batch
         bs, seq = pose.shape[:2]
@@ -478,9 +475,8 @@ def evaluation_transformer_test(out_dir, val_loader, net, trans, logger, writer,
         feat_clip_text = clip_model.encode_text(text).float().unsqueeze(1) 
         feat_clip_text = torch.cat((feat_clip_text, keyword_embeddings.float().cuda()), dim = 1) # bs x 11+1 x 512
 
-        from tqdm import tqdm
         motion_multimodality_batch = []
-        for i in range(30):
+        for i in range(1):
             pred_pose_eval = torch.zeros((bs, seq, pose.shape[-1])).cuda()
             pred_len = torch.ones(bs).long()
             total = 0
