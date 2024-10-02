@@ -463,9 +463,7 @@ def evaluation_transformer_test(out_dir, val_loader, net, trans, logger, writer,
     matching_score_pred = 0
 
     nb_sample = 0
-
     for batch in val_loader:
-
         word_embeddings, pos_one_hots, clip_text, sent_len, pose, m_length, token, name, indices, keyword_embeddings = batch
         bs, seq = pose.shape[:2]
 
@@ -476,10 +474,9 @@ def evaluation_transformer_test(out_dir, val_loader, net, trans, logger, writer,
         feat_clip_text = torch.cat((feat_clip_text, keyword_embeddings.float().cuda()), dim = 1) # bs x 11+1 x 512
 
         motion_multimodality_batch = []
-        for i in range(1):
+        for i in range(30):
             pred_pose_eval = torch.zeros((bs, seq, pose.shape[-1])).cuda()
             pred_len = torch.ones(bs).long()
-            total = 0
             for k in range(bs):
                 index_motion = trans.sample(feat_clip_text[k:k+1], True, m_length[k]//unit_length)[:,:,:-2] # 1 x t x code_num
                 pred_pose = net.forward(index_motion.float()) # (1, T, Jx3)

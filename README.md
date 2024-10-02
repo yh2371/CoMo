@@ -146,7 +146,7 @@ python train_t2m.py \
 ### Motion Decoder
 
 ```bash
-python3 eval_dec.py \
+python eval_dec.py \
 --batch-size 256 \
 --lr 2e-4 \
 --total-iter 300000 \

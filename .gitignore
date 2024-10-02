@@ -20,6 +20,7 @@ dataset/HumanML3D
 dataset/KIT-ML
 dataset/KIT-ML_old
 dataset/HumanML3D_new
+body_models/
 
 # Pytorch
 *.pth
