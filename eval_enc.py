@@ -73,7 +73,7 @@ net_e = motion_enc.MotionEnc(args,
                        args.dilation_growth_rate,
                        args.vq_act,
                        args.vq_norm)
-ckpt_e = torch.load('/nlp/data/ymhuang9/t2m_dev/CoMo/output/Enc/net_best_fid.pth', map_location='cpu')
+ckpt_e = torch.load('pretrained/t2m/Enc/model.pth', map_location='cpu')
 net_e.load_state_dict(ckpt_e['net'], strict=True)
 net_e.train()
 net_e.cuda()
