@@ -5,6 +5,18 @@
   <div align="center"></div>
 </p>
 
+<div float="center">
+  <img src="assets/como_teaser.gif" />
+</div>
+
+## ToDos
+
+- [ ] Release motion editing demo.
+
+- [x] Release finegrained keyword data.
+
+- [x] Release training/evaluation code. 
+
 ## Installation
 
 To get started, clone this project, then setup the required dependencies using the following commands:
