@@ -223,4 +223,4 @@ If you find our work helpful or use our code, please consider citing:
 
 We would like to thank the following contributors whose amazing work our code is based on:
 
-[text-to-motion](https://github.com/EricGuo5513/text-to-motion), [T2M-GPT](https://github.com/Mael-zys/T2M-GPT), [PoseScript](https://github.com/naver/posescript)
+[text-to-motion](https://github.com/EricGuo5513/text-to-motion), [MDM](https://github.com/GuyTevet/motion-diffusion-model), [T2M-GPT](https://github.com/Mael-zys/T2M-GPT), [PoseScript](https://github.com/naver/posescript)
