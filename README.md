@@ -125,7 +125,7 @@ python train_enc.py \
 --recons-loss l1_smooth \
 --exp-name Enc \
 --output-emb-width 392 \
---resume-pth ./pretrained/Dec/net_best_fid.pth
+--resume-pth ./pretrained/t2m/Dec/model.pth
 ```
 
 ### Motion Generator
@@ -149,8 +149,7 @@ python train_t2m.py \
 --eval-iter 10000 \
 --dilation-growth-rate 3 \
 --output-emb-width 392 \
---resume-pth ./pretrained/Dec/net_best_fid.pth \
---resume-trans ./output/GPT/net_best_fid.pth 
+--resume-pth ./pretrained/t2m/Dec/model.pth 
 ```
 
 ## Evaluation
@@ -173,7 +172,7 @@ python eval_dec.py \
 --loss-vel 0.5 \
 --recons-loss l1_smooth \
 --exp-name TEST_Dec \
---resume-pth ./pretrained/Dec/net_best_fid.pth \
+--resume-pth ./pretrained/t2m/Dec/model.pth \
 --output-emb-width 392
 ```
 
@@ -190,7 +189,7 @@ python eval_t2m.py  \
 --block-size 62 \
 --ff-rate 4 \
 --drop-out-rate 0.1 \
---resume-pth ./pretrained/Dec/net_best_fid.pth \
+--resume-pth ./pretrained/t2m/Dec/model.pth \
 --vq-name VQVAE \
 --out-dir output \
 --total-iter 300000 \
@@ -204,7 +203,7 @@ python eval_t2m.py  \
 --dilation-growth-rate 3 \
 --vq-act relu \
 --output-emb-width 392 \
---resume-trans ./pretrained/Trans/net_best_fid.pth
+--resume-trans ./pretrained/t2m/Trans/model.pth
 ```
 
 ## BibTeX
