@@ -5,7 +5,7 @@
   <div align="center"></div>
 </p>
 
-<div float="center">
+<div align="center">
   <img src="assets/como_teaser.gif" />
 </div>
 
