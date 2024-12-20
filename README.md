@@ -147,6 +147,7 @@ python train_t2m.py \
 --down-t 2 \
 --depth 3 \
 --eval-iter 10000 \
+--pkeep 0.5 \
 --dilation-growth-rate 3 \
 --output-emb-width 392 \
 --resume-pth ./pretrained/t2m/Dec/model.pth 
